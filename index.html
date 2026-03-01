@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Family Bills (Simple)</title>
+
+  <style>
+    /* --- Simple clean layout (mobile friendly) --- */
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 16px;
+      max-width: 900px;
+    }
+
+    h2 { margin: 0 0 12px; }
+    h3 { margin-top: 24px; }
+
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 14px;
+      margin: 12px 0;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .field {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    input {
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #bbb;
+      border-radius: 10px;
+    }
+
+    .big {
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #eee;
+      padding: 10px 8px;
+      text-align: left;
+    }
+
+    th { opacity: 0.8; }
+
+    button {
+      padding: 12px 14px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #bbb;
+      background: #f6f6f6;
+      cursor: pointer;
+    }
+
+    button:active { transform: translateY(1px); }
+
+    .muted { opacity: 0.7; font-size: 13px; }
+    .ok { color: #0a7d3b; }
+    .bad { color: #b00020; }
+  </style>
+</head>
+
+<body>
+  <h2>Family Bills (Simple)</h2>
+  <div class="muted">No saving. You type the amounts, it calculates what he owes. Optional share-link included.</div>
+
+  <div class="card">
+    <div class="row">
+      <div class="field">
+        <label>Month (YYYY-MM)</label>
+        <input id="month" placeholder="2026-02" />
+      </div>
+
+      <div class="field">
+        <label>Split Count (shared bills)</label>
+        <input id="splitCount" type="number" min="1" value="3" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 12px;">
+      <div class="field">
+        <label>AES (Electric) - total you paid</label>
+        <input id="aes" type="number" step="0.01" placeholder="0.00" />
+      </div>
+
+      <div class="field">
+        <label>Citizens Energy - total you paid</label>
+        <input id="citizens" type="number" step="0.01" placeholder="0.00" />
+      </div>
+
+      <div class="field">
+        <label>AT&amp;T - his line amount (you paid, he reimburses)</label>
+        <input id="att" type="number" step="0.01" placeholder="0.00" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 12px; align-items:center;">
+      <button id="copyLinkBtn">Copy Share Link</button>
+      <span id="copyStatus" class="muted"></span>
+    </div>
+
+    <div class="muted" style="margin-top:10px;">
+      Tip: Enter your numbers → tap “Copy Share Link” → paste to your son or grandma.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="muted">Total your son owes</div>
+    <div class="big" id="totalOwed">$0.00</div>
+    <div class="muted">AES share + Citizens share + full AT&amp;T</div>
+  </div>
+
+  <div class="card">
+    <div class="muted">Breakdown</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Bill</th>
+          <th>Total Paid</th>
+          <th>Rule</th>
+          <th>He Owes</th>
+        </tr>
+      </thead>
+      <tbody id="breakdownBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    // ---------- Helpers ----------
+    const $ = (id) => document.getElementById(id); // quick element lookup
+
+    function toNumber(value) {
+      // Convert input string to a safe number; invalid becomes 0
+      const n = Number(value);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function money(n) {
+      // Format number like $12.34
+      return "$" + Number(n).toFixed(2);
+    }
+
+    function currentMonthYYYYMM() {
+      // Default month based on device date
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      return `${y}-${m}`;
+    }
+
+    // ---------- Core calculation ----------
+    function calculateAndRender() {
+      // Read values from inputs
+      const month = $("month").value.trim();
+      const splitCount = Math.max(1, Math.floor(toNumber($("splitCount").value)));
+
+      const aesTotal = toNumber($("aes").value);
+      const citizensTotal = toNumber($("citizens").value);
+      const attTotal = toNumber($("att").value);
+
+      // Shared bills are split
+      const aesOwes = aesTotal / splitCount;
+      const citizensOwes = citizensTotal / splitCount;
+
+      // AT&T is assigned to him fully (reimbursement)
+      const attOwes = attTotal;
+
+      // Total owed
+      const total = aesOwes + citizensOwes + attOwes;
+
+      // Update the big number
+      $("totalOwed").textContent = money(total);
+
+      // Build the breakdown table rows
+      const rows = [
+        {
+          name: "AES (Electric)",
+          total: aesTotal,
+          rule: `Split 1/${splitCount}`,
+          owes: aesOwes
+        },
+        {
+          name: "Citizens Energy",
+          total: citizensTotal,
+          rule: `Split 1/${splitCount}`,
+          owes: citizensOwes
+        },
+        {
+          name: "AT&T",
+          total: attTotal,
+          rule: "Assigned (full)",
+          owes: attOwes
+        }
+      ];
+
+      // Render rows
+      $("breakdownBody").innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${money(r.total)}</td>
+          <td>${r.rule}</td>
+          <td><b>${money(r.owes)}</b></td>
+        </tr>
+      `).join("");
+
+      // Keep URL updated (so refresh keeps values if you want)
+      // This does NOT "save" anywhere; it just encodes values in the URL.
+      const params = new URLSearchParams();
+      if (month) params.set("m", month);
+      params.set("s", String(splitCount));
+      params.set("aes", String(aesTotal));
+      params.set("c", String(citizensTotal));
+      params.set("att", String(attTotal));
+
+      const newUrl = `${location.pathname}?${params.toString()}`;
+      history.replaceState(null, "", newUrl);
+    }
+
+    // ---------- Share link ----------
+    async function copyShareLink() {
+      // The current URL already has params (we keep it updated)
+      const urlToCopy = location.href;
+
+      try {
+        await navigator.clipboard.writeText(urlToCopy);
+        $("copyStatus").textContent = "Copied ✅";
+        $("copyStatus").className = "muted ok";
+      } catch (e) {
+        // Some browsers block clipboard unless on HTTPS or user gesture
+        $("copyStatus").textContent = "Could not copy automatically. Copy from address bar.";
+        $("copyStatus").className = "muted bad";
+      }
+    }
+
+    // ---------- Init (load from URL params if present) ----------
+    function initFromUrl() {
+      const params = new URLSearchParams(location.search);
+
+      // Month
+      $("month").value = params.get("m") || currentMonthYYYYMM();
+
+      // Split count
+      $("splitCount").value = params.get("s") || "3";
+
+      // Amounts
+      $("aes").value = params.get("aes") || "";
+      $("citizens").value = params.get("c") || "";
+      $("att").value = params.get("att") || "";
+
+      // Render once
+      calculateAndRender();
+    }
+
+    // Recalculate whenever input changes
+    ["month","splitCount","aes","citizens","att"].forEach(id => {
+      $(id).addEventListener("input", calculateAndRender);
+    });
+
+    // Copy button
+    $("copyLinkBtn").addEventListener("click", copyShareLink);
+
+    // Start
+    initFromUrl();
+  </script>
+</body>
+</html>
