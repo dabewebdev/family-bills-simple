@@ -1,218 +1,432 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Family Bills (Simple)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Family Bills</title>
 
-<style>
-body{
-font-family:system-ui;
-margin:16px;
-max-width:900px;
-}
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 16px;
+      max-width: 900px;
+      background: #f7f7f7;
+    }
 
-.card{
-border:1px solid #ddd;
-border-radius:12px;
-padding:14px;
-margin:12px 0;
-}
+    h1 {
+      margin-bottom: 8px;
+    }
 
-.row{
-display:flex;
-gap:12px;
-flex-wrap:wrap;
-}
+    .muted {
+      opacity: 0.75;
+      font-size: 14px;
+    }
 
-.field{
-flex:1;
-min-width:200px;
-display:flex;
-flex-direction:column;
-gap:6px;
-}
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 14px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
 
-input{
-padding:12px;
-font-size:16px;
-border-radius:10px;
-border:1px solid #bbb;
-}
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
 
-.big{
-font-size:30px;
-font-weight:800;
-}
+    .field {
+      flex: 1;
+      min-width: 220px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
-table{
-width:100%;
-border-collapse:collapse;
-}
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
 
-th,td{
-padding:10px;
-border-bottom:1px solid #eee;
-text-align:left;
-}
+    input {
+      padding: 14px;
+      font-size: 18px;
+      border: 1px solid #bbb;
+      border-radius: 12px;
+      background: #fff;
+    }
 
-button{
-padding:12px 14px;
-border-radius:10px;
-border:1px solid #bbb;
-background:#f6f6f6;
-cursor:pointer;
-}
+    button {
+      padding: 14px 16px;
+      font-size: 17px;
+      border-radius: 12px;
+      border: 1px solid #bbb;
+      background: #f4f4f4;
+      cursor: pointer;
+    }
 
-.muted{
-opacity:.7;
-font-size:13px;
-}
-</style>
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .banner {
+      background: linear-gradient(135deg, #111, #333);
+      color: white;
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .banner-small {
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
+    .banner-big {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin: 6px 0;
+    }
+
+    .banner-note {
+      font-size: 18px;
+      font-weight: 600;
+      opacity: 0.95;
+    }
+
+    .big-total {
+      font-size: 34px;
+      font-weight: 800;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #eee;
+      padding: 12px 8px;
+      text-align: left;
+      font-size: 16px;
+    }
+
+    th {
+      color: #444;
+    }
+
+    .right {
+      text-align: right;
+    }
+
+    .status {
+      font-size: 14px;
+      color: #0a7d3b;
+      margin-left: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .banner-big {
+        font-size: 36px;
+      }
+
+      th, td {
+        font-size: 15px;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <h1>Family Bills</h1>
+  <div class="muted">
+    Simple monthly calculator for AES, Citizens, AT&amp;T WiFi, and AT&amp;T Cellphone.
+  </div>
 
-<h2>Family Bills</h2>
+  <div class="card banner">
+    <div class="banner-small">You owe Dad this month</div>
+    <div class="banner-big" id="heroTotal">$0.00</div>
+    <div class="banner-note">Send via Zelle</div>
+  </div>
 
-<div class="card">
+  <div class="card">
+    <div class="row">
+      <div class="field">
+        <label for="month">Month</label>
+        <input id="month" type="month" />
+      </div>
 
-<div class="row">
-<div class="field">
-<label>Month</label>
-<input id="month">
-</div>
+      <div class="field">
+        <label for="splitCount">Split Count (shared bills)</label>
+        <input id="splitCount" type="number" min="1" value="3" />
+      </div>
+    </div>
 
-<div class="field">
-<label>Split Count</label>
-<input id="splitCount" type="number" value="3">
-</div>
-</div>
+    <div class="row" style="margin-top: 12px;">
+      <div class="field">
+        <label for="aes">AES Electric</label>
+        <input id="aes" type="number" step="0.01" placeholder="0.00" />
+      </div>
 
-<div class="row">
+      <div class="field">
+        <label for="citizens">Citizens Energy</label>
+        <input id="citizens" type="number" step="0.01" placeholder="0.00" />
+      </div>
+    </div>
 
-<div class="field">
-<label>AES Electric</label>
-<input id="aes" type="number" step="0.01">
-</div>
+    <div class="row" style="margin-top: 12px;">
+      <div class="field">
+        <label for="wifi">AT&amp;T WiFi (shared)</label>
+        <input id="wifi" type="number" step="0.01" placeholder="0.00" />
+      </div>
 
-<div class="field">
-<label>Citizens Energy</label>
-<input id="citizens" type="number" step="0.01">
-</div>
+      <div class="field">
+        <label for="phone">AT&amp;T Cellphone (his)</label>
+        <input id="phone" type="number" step="0.01" placeholder="0.00" />
+      </div>
+    </div>
 
-<div class="field">
-<label>AT&T WiFi (shared)</label>
-<input id="wifi" type="number" step="0.01">
-</div>
+    <div class="row" style="margin-top: 14px; align-items: center;">
+      <button id="copyLinkBtn">Copy Share Link</button>
+      <button id="useLastBtn">Use Last Amounts</button>
+      <button id="clearBtn">Clear</button>
+      <span id="copyStatus" class="status"></span>
+    </div>
 
-<div class="field">
-<label>AT&T Cellphone (his)</label>
-<input id="phone" type="number" step="0.01">
-</div>
+    <div class="muted" style="margin-top: 10px;">
+      Enter bills → copy share link → send to your son or grandma.
+    </div>
+  </div>
 
-</div>
+  <div class="card">
+    <div class="muted">Total he owes</div>
+    <div class="big-total" id="total">$0.00</div>
+    <div class="muted">AES share + Citizens share + WiFi share + full cellphone</div>
+  </div>
 
-<button id="copyLinkBtn">Copy Share Link</button>
+  <div class="card">
+    <div class="muted">Breakdown</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Bill</th>
+          <th>Total</th>
+          <th>Rule</th>
+          <th class="right">He Owes</th>
+        </tr>
+      </thead>
+      <tbody id="table"></tbody>
+    </table>
+  </div>
 
-<div class="muted">
-Enter bills → send link to your son.
-</div>
+  <script>
+    // Quick helper to get an element by id
+    const $ = (id) => document.getElementById(id);
 
-</div>
+    // Convert anything from an input into a safe number
+    function num(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : 0;
+    }
 
-<div class="card">
-<div class="muted">Total he owes</div>
-<div class="big" id="total">$0.00</div>
-</div>
+    // Format numbers as money like $12.34
+    function money(n) {
+      return "$" + Number(n).toFixed(2);
+    }
 
-<div class="card">
+    // Get the current month in YYYY-MM format for the month input
+    function getCurrentMonthValue() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      return `${year}-${month}`;
+    }
 
-<table>
-<thead>
-<tr>
-<th>Bill</th>
-<th>Total</th>
-<th>Rule</th>
-<th>He Owes</th>
-</tr>
-</thead>
+    // Save the current amounts to localStorage on this device only
+    function saveLastAmounts() {
+      const data = {
+        splitCount: $("splitCount").value,
+        aes: $("aes").value,
+        citizens: $("citizens").value,
+        wifi: $("wifi").value,
+        phone: $("phone").value
+      };
 
-<tbody id="table"></tbody>
+      localStorage.setItem("familyBillsLastAmounts", JSON.stringify(data));
+    }
 
-</table>
+    // Load the last saved amounts from localStorage
+    function loadLastAmounts() {
+      const raw = localStorage.getItem("familyBillsLastAmounts");
+      if (!raw) return null;
 
-</div>
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        return null;
+      }
+    }
 
-<script>
+    // Put the last saved amounts back into the inputs
+    function applyLastAmounts() {
+      const saved = loadLastAmounts();
+      if (!saved) {
+        $("copyStatus").textContent = "No saved amounts on this device yet.";
+        return;
+      }
 
-const $ = id => document.getElementById(id)
+      $("splitCount").value = saved.splitCount || "3";
+      $("aes").value = saved.aes || "";
+      $("citizens").value = saved.citizens || "";
+      $("wifi").value = saved.wifi || "";
+      $("phone").value = saved.phone || "";
 
-function money(n){
-return "$"+Number(n).toFixed(2)
-}
+      calculate();
+      $("copyStatus").textContent = "Last amounts loaded.";
+    }
 
-function num(v){
-const n=Number(v)
-return Number.isFinite(n)?n:0
-}
+    // Clear all bill fields, but keep the month
+    function clearFields() {
+      $("aes").value = "";
+      $("citizens").value = "";
+      $("wifi").value = "";
+      $("phone").value = "";
+      $("splitCount").value = "3";
+      calculate();
+      $("copyStatus").textContent = "Cleared.";
+    }
 
-function calc(){
+    // Build a shareable URL using the current values in the form
+    function buildShareUrl() {
+      const params = new URLSearchParams();
 
-const split=num($("splitCount").value)||1
+      params.set("m", $("month").value);
+      params.set("s", $("splitCount").value);
+      params.set("aes", $("aes").value || "0");
+      params.set("c", $("citizens").value || "0");
+      params.set("wifi", $("wifi").value || "0");
+      params.set("phone", $("phone").value || "0");
 
-const aes=num($("aes").value)
-const citizens=num($("citizens").value)
-const wifi=num($("wifi").value)
-const phone=num($("phone").value)
+      return `${location.origin}${location.pathname}?${params.toString()}`;
+    }
 
-const aesShare=aes/split
-const citizensShare=citizens/split
-const wifiShare=wifi/split
-const phoneShare=phone
+    // Copy the share link to clipboard
+    async function copyShareLink() {
+      const url = buildShareUrl();
 
-const total=aesShare+citizensShare+wifiShare+phoneShare
+      try {
+        await navigator.clipboard.writeText(url);
+        $("copyStatus").textContent = "Share link copied.";
+      } catch (error) {
+        $("copyStatus").textContent = "Copy failed. Copy from the address bar instead.";
+      }
+    }
 
-$("total").textContent=money(total)
+    // Read values from the URL if present
+    function loadFromUrl() {
+      const params = new URLSearchParams(location.search);
 
-$("table").innerHTML=`
-<tr>
-<td>AES</td>
-<td>${money(aes)}</td>
-<td>Split 1/${split}</td>
-<td>${money(aesShare)}</td>
-</tr>
+      const monthFromUrl = params.get("m");
+      const splitFromUrl = params.get("s");
+      const aesFromUrl = params.get("aes");
+      const citizensFromUrl = params.get("c");
+      const wifiFromUrl = params.get("wifi");
+      const phoneFromUrl = params.get("phone");
 
-<tr>
-<td>Citizens</td>
-<td>${money(citizens)}</td>
-<td>Split 1/${split}</td>
-<td>${money(citizensShare)}</td>
-</tr>
+      if (monthFromUrl) $("month").value = monthFromUrl;
+      if (splitFromUrl) $("splitCount").value = splitFromUrl;
+      if (aesFromUrl) $("aes").value = aesFromUrl;
+      if (citizensFromUrl) $("citizens").value = citizensFromUrl;
+      if (wifiFromUrl) $("wifi").value = wifiFromUrl;
+      if (phoneFromUrl) $("phone").value = phoneFromUrl;
+    }
 
-<tr>
-<td>AT&T WiFi</td>
-<td>${money(wifi)}</td>
-<td>Split 1/${split}</td>
-<td>${money(wifiShare)}</td>
-</tr>
+    // Main calculation for what he owes
+    function calculate() {
+      const split = Math.max(1, Math.floor(num($("splitCount").value)));
 
-<tr>
-<td>AT&T Cellphone</td>
-<td>${money(phone)}</td>
-<td>Full</td>
-<td>${money(phoneShare)}</td>
-</tr>
-`
-}
+      const aes = num($("aes").value);
+      const citizens = num($("citizens").value);
+      const wifi = num($("wifi").value);
+      const phone = num($("phone").value);
 
-document.querySelectorAll("input").forEach(i=>{
-i.addEventListener("input",calc)
-})
+      const aesShare = aes / split;
+      const citizensShare = citizens / split;
+      const wifiShare = wifi / split;
+      const phoneShare = phone; // cellphone is fully his
 
-calc()
+      const total = aesShare + citizensShare + wifiShare + phoneShare;
 
-</script>
+      $("total").textContent = money(total);
+      $("heroTotal").textContent = money(total);
 
+      $("table").innerHTML = `
+        <tr>
+          <td>AES Electric</td>
+          <td>${money(aes)}</td>
+          <td>Split 1/${split}</td>
+          <td class="right"><strong>${money(aesShare)}</strong></td>
+        </tr>
+        <tr>
+          <td>Citizens Energy</td>
+          <td>${money(citizens)}</td>
+          <td>Split 1/${split}</td>
+          <td class="right"><strong>${money(citizensShare)}</strong></td>
+        </tr>
+        <tr>
+          <td>AT&T WiFi</td>
+          <td>${money(wifi)}</td>
+          <td>Split 1/${split}</td>
+          <td class="right"><strong>${money(wifiShare)}</strong></td>
+        </tr>
+        <tr>
+          <td>AT&T Cellphone</td>
+          <td>${money(phone)}</td>
+          <td>Full</td>
+          <td class="right"><strong>${money(phoneShare)}</strong></td>
+        </tr>
+      `;
+
+      // Save current numbers locally on this device
+      saveLastAmounts();
+
+      // Keep browser URL updated so refreshing keeps the current values
+      history.replaceState(null, "", buildShareUrl());
+    }
+
+    // Set up default month first
+    $("month").value = getCurrentMonthValue();
+
+    // If the page has URL values, use them
+    loadFromUrl();
+
+    // If there are no URL values, preload with last saved amounts from this device
+    if (!location.search) {
+      const saved = loadLastAmounts();
+      if (saved) {
+        $("splitCount").value = saved.splitCount || "3";
+        $("aes").value = saved.aes || "";
+        $("citizens").value = saved.citizens || "";
+        $("wifi").value = saved.wifi || "";
+        $("phone").value = saved.phone || "";
+      }
+    }
+
+    // Recalculate whenever an input changes
+    ["month", "splitCount", "aes", "citizens", "wifi", "phone"].forEach((id) => {
+      $(id).addEventListener("input", calculate);
+    });
+
+    // Button events
+    $("copyLinkBtn").addEventListener("click", copyShareLink);
+    $("useLastBtn").addEventListener("click", applyLastAmounts);
+    $("clearBtn").addEventListener("click", clearFields);
+
+    // First render
+    calculate();
+  </script>
 </body>
 </html>
